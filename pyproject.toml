@@ -11,6 +11,8 @@ python = "^3.11"
 aiohttp = "^3.9.5"
 jishaku = "^2.5.2"
 mcstatus = "^11.1.1"
+fuzzywuzzy = "^0.18.0"
+python-levenshtein = "^0.25.1"
 
 
 [build-system]
