@@ -39,7 +39,12 @@ async def timezone_auto_complete(
 @app_commands.context_menu(name="Get Time")
 async def get_time(interaction: discord.Interaction[Estella], user: discord.Member):
     cog: "Time" = interaction.client.cogs["Time"]  # pyright: ignore[reportAssignmentType]
-    time = await cog.get_time_formatted(user)
+    time = await cog.get_user_time_formatted(user)
+
+    if not time:
+        return await interaction.response.send_message(
+            f"{user.display_name} has no timezone set.", ephemeral=True
+        )
 
     await interaction.response.send_message(
         f"{user.display_name}'s current time is {time}"
@@ -51,7 +56,7 @@ class Time(commands.Cog):
         self.bot = bot
         self.bot.tree.add_command(get_time)
 
-    async def get_time_formatted(
+    async def get_user_time_formatted(
         self,
         user: discord.User | discord.Member,
     ) -> Optional[str]:
@@ -68,15 +73,18 @@ class Time(commands.Cog):
         if not timezone:
             return None
 
-        time = discord.utils.utcnow().astimezone(tz(timezone[0]))
+        return self.format_timezone(timezone[0])
+
+    def format_timezone(self, timezone: str) -> str:
+        time = discord.utils.utcnow().astimezone(tz(timezone))
         return time.strftime(f"**%I:%M %p** (%B {ordinal(time.day)})")
 
-    time = app_commands.Group(
-        name="time",
+    timezone = app_commands.Group(
+        name="timezone",
         description="Commands related to time.",
     )
 
-    @time.command(name="set", description="Set your timezone.")
+    @timezone.command(name="set", description="Set your timezone.")
     @app_commands.describe(timezone="The timezone to set.")
     @app_commands.autocomplete(timezone=timezone_auto_complete)
     async def _set(
@@ -107,7 +115,7 @@ class Time(commands.Cog):
             ephemeral=True,
         )
 
-    @time.command(name="info", description="Get the time of a specific timezone.")
+    @timezone.command(name="info", description="Get the time of a specific timezone.")
     @app_commands.describe(timezone="The timezone to get the time of.")
     @app_commands.autocomplete(timezone=timezone_auto_complete)
     async def _info(
@@ -122,15 +130,14 @@ class Time(commands.Cog):
                 ephemeral=False,
             )
 
-        time = discord.utils.utcnow().astimezone(tz(timezone))
-        formatted = time.strftime(f"**%I:%M %p** (%B {ordinal(time.day)})")
+        formatted = self.format_timezone(timezone)
 
         await interaction.response.send_message(
             f"The time in `{timezone}` is {formatted}",
             ephemeral=hidden,
         )
 
-    @time.command(name="get", description="Get a user's set timezone.")
+    @timezone.command(name="get", description="Get a user's set timezone.")
     @app_commands.describe(
         user="The user to get the timezone of, or leave it blank for yourself.",
         hidden="Whether or not to hide the response.",
@@ -142,7 +149,13 @@ class Time(commands.Cog):
         hidden: bool = False,
     ):
         target = user or interaction.user
-        time = await self.get_time_formatted(target)
+        time = await self.get_user_time_formatted(target)
+
+        if not time:
+            return await interaction.response.send_message(
+                f"{target.display_name} has no timezone set.",
+                ephemeral=True,
+            )
 
         await interaction.response.send_message(
             f"{target.display_name}'s current time is {time}",
