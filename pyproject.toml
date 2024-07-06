@@ -13,6 +13,8 @@ jishaku = "^2.5.2"
 mcstatus = "^11.1.1"
 fuzzywuzzy = "^0.18.0"
 python-levenshtein = "^0.25.1"
+asqlite = "^2.0.0"
+pytz = "^2024.1"
 
 
 [build-system]

@@ -110,6 +110,17 @@ files = [
 frozenlist = ">=1.1.0"
 
 [[package]]
+name = "asqlite"
+version = "2.0.0"
+description = "A simple and easy to use async wrapper for sqlite3."
+optional = false
+python-versions = ">=3.8.0"
+files = [
+    {file = "asqlite-2.0.0-py3-none-any.whl", hash = "sha256:271b4206dbab14da93ff191fb03f3166d11d8feec90467653762636810f040b5"},
+    {file = "asqlite-2.0.0.tar.gz", hash = "sha256:97645200037f822c170e7dafa8b8422f85983a36e03060e47dcd932c0e1714a3"},
+]
+
+[[package]]
 name = "astunparse"
 version = "1.6.3"
 description = "An AST unparser for Python"
@@ -620,6 +631,17 @@ files = [
 Levenshtein = "0.25.1"
 
 [[package]]
+name = "pytz"
+version = "2024.1"
+description = "World timezone definitions, modern and historical"
+optional = false
+python-versions = "*"
+files = [
+    {file = "pytz-2024.1-py2.py3-none-any.whl", hash = "sha256:328171f4e3623139da4983451950b28e95ac706e13f3f2630a879749e7a8b319"},
+    {file = "pytz-2024.1.tar.gz", hash = "sha256:2a29735ea9c18baf14b448846bde5a48030ed267578472d8955cd0e7443a9812"},
+]
+
+[[package]]
 name = "rapidfuzz"
 version = "3.9.4"
 description = "rapid fuzzy string matching"
@@ -870,4 +892,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "485b701d4d357b26aef9812ccdfb69ddcda0c045c5ad0cd43c957e770ca94bd4"
+content-hash = "5cad31cd6977efaf77ec58613374e581cf8f4ee2b26101513517d14074a587a8"
