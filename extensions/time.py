@@ -39,16 +39,15 @@ async def timezone_auto_complete(
 @app_commands.context_menu(name="Get Time")
 async def get_time(interaction: discord.Interaction[Estella], user: discord.Member):
     cog: "Time" = interaction.client.cogs["Time"]  # pyright: ignore[reportAssignmentType]
-    time = await cog.get_user_time_formatted(user)
 
-    if not time:
-        return await interaction.response.send_message(
-            f"{user.display_name} has no timezone set.", ephemeral=True
+    try:
+        time = await cog.get_user_time_formatted(user)
+    except commands.BadArgument as err:
+        await interaction.response.send_message(err.args[0], ephemeral=True)
+    else:
+        await interaction.response.send_message(
+            f"{user.display_name}'s current time is {time}"
         )
-
-    await interaction.response.send_message(
-        f"{user.display_name}'s current time is {time}"
-    )
 
 
 class Time(commands.Cog):
@@ -59,7 +58,10 @@ class Time(commands.Cog):
     async def get_user_time_formatted(
         self,
         user: discord.User | discord.Member,
-    ) -> Optional[str]:
+    ) -> str:
+        if user.bot:
+            raise commands.BadArgument("Bots dont have timezones, dummy!")
+
         async with self.bot.pool.acquire() as conn:
             timezone = await conn.fetchone(
                 """
@@ -71,7 +73,7 @@ class Time(commands.Cog):
             )
 
         if not timezone:
-            return None
+            raise commands.BadArgument("This user has no timezone set.")
 
         return self.format_timezone(timezone[0])
 
@@ -149,18 +151,19 @@ class Time(commands.Cog):
         hidden: bool = False,
     ):
         target = user or interaction.user
-        time = await self.get_user_time_formatted(target)
 
-        if not time:
+        try:
+            time = await self.get_user_time_formatted(target)
+        except commands.BadArgument as err:
             return await interaction.response.send_message(
-                f"{target.display_name} has no timezone set.",
+                err.args[0],
                 ephemeral=True,
             )
-
-        await interaction.response.send_message(
-            f"{target.display_name}'s current time is {time}",
-            ephemeral=hidden,
-        )
+        else:
+            await interaction.response.send_message(
+                f"{target.display_name}'s current time is {time}",
+                ephemeral=hidden,
+            )
 
 
 async def setup(bot: Estella):

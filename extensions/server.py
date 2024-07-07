@@ -30,7 +30,7 @@ async def _is_server_online(interaction: discord.Interaction[Estella]) -> bool:
     cog: "Server" = interaction.client.cogs["Server"]  # type: ignore
     try:
         await cog.client.async_ping()  # type: ignore
-    except ConnectionRefusedError:
+    except Exception:
         await interaction.response.send_message(
             "I can't seem to reach the server at this moment, please try again later."
         )
@@ -76,12 +76,7 @@ class Server(commands.Cog):
 
         embed = discord.Embed(
             title="Server Information",
-            description=to_cb(
-                motd_to_ansi(
-                    status.motd.to_ansi(),
-                ),
-                lang="ansi",
-            ),
+            description=to_cb(motd_to_ansi(status.motd.parsed), lang="ansi"),
         )
 
         embed.add_field(
