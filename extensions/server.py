@@ -15,7 +15,7 @@ from config import SERVER_IP
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from bot import Estella
+    from utils import Estella
     from mcstatus.status_response import JavaStatusResponse
 
 

@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING, Optional
 from utils import ordinal
 
 if TYPE_CHECKING:
-    from bot import Estella
+    from utils import Estella
 
 TIMEZONES = zoneinfo.available_timezones()
 

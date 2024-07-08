@@ -11,9 +11,14 @@ from .logging import (
     logger as logger,
 )
 
+from .subclasses import (
+    Estella as Estella,
+)
+
 __all__ = (
-    "logger",
     "motd_to_ansi",
     "to_cb",
     "ordinal",
+    "logger",
+    "Estella",
 )
