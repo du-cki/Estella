@@ -21,21 +21,17 @@ if TYPE_CHECKING:
 
 async def _is_server_online(interaction: discord.Interaction[Estella]) -> bool:
     if SERVER_IP is None:
-        await interaction.response.send_message(
+        raise app_commands.CheckFailure(
             "I'm not set to watch any servers at the moment."
         )
-
-        return False
 
     cog: "Server" = interaction.client.cogs["Server"]  # type: ignore
     try:
         await cog.client.async_ping()  # type: ignore
     except Exception:
-        await interaction.response.send_message(
+        raise app_commands.CheckFailure(
             "I can't seem to reach the server at this moment, please try again later."
         )
-
-        return False
     else:
         return True
 
@@ -62,6 +58,19 @@ class Server(commands.Cog):
         name="server",
         description="Commands related to the server.",
     )
+
+    async def cog_app_command_error(  # pyright: ignore[reportIncompatibleMethodOverride]
+        self,
+        interaction: discord.Interaction[Estella],
+        error: app_commands.AppCommandError,
+    ):
+        if isinstance(error, app_commands.CheckFailure):
+            return await interaction.response.send_message(
+                error.args[0],
+                ephemeral=True,
+            )
+
+        raise error
 
     @server.command(description="Pings the server.")
     @app_commands.check(_is_server_online)
