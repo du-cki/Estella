@@ -4,18 +4,17 @@ from discord import app_commands
 from discord.ext import commands
 
 import asqlite
-import aiohttp
-import logging
-import pathlib
 
+from pathlib import Path
+from aiohttp import ClientSession
+
+from utils import logger
 from config import TOKEN
-
-logger = logging.getLogger("discord")
 
 
 class Estella(commands.Bot):
     async def setup_hook(self):
-        self.session = aiohttp.ClientSession()
+        self.session = ClientSession()
 
         logger.info("Connecting to database.")
         self.pool = await asqlite.create_pool("data.db")
@@ -27,7 +26,7 @@ class Estella(commands.Bot):
 
         await self.load_extension("jishaku")
 
-        exts = pathlib.Path("extensions").glob("*.py")
+        exts = Path("extensions").glob("*.py")
         for ext in exts:
             logger.info(f"Loading extension: {ext.name}")
             await self.load_extension(f"extensions.{ext.name[:-3]}")
