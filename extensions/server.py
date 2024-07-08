@@ -127,7 +127,7 @@ class Server(commands.Cog):
 
         embed = discord.Embed(
             title="Online Players",
-            description="\n".join(user.name for user in status.players.sample or []),
+            description="\n".join(user.name for user in status.players.sample),
         )
 
         await interaction.response.send_message(embed=embed)
