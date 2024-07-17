@@ -8,7 +8,9 @@ import zoneinfo
 import itertools
 
 from fuzzywuzzy import process  # pyright: ignore[reportMissingTypeStubs]
-from pytz import timezone as tz
+from pytz import timezone as tz, BaseTzInfo
+
+from datetime import datetime
 
 from typing import TYPE_CHECKING, Optional
 
@@ -41,7 +43,7 @@ async def get_time(interaction: discord.Interaction[Estella], user: discord.Memb
     cog: "Time" = interaction.client.cogs["Time"]  # pyright: ignore[reportAssignmentType]
 
     try:
-        time = await cog.get_user_time_formatted(user)
+        time = await cog.get_user_time(user)
     except commands.BadArgument as err:
         await interaction.response.send_message(err.args[0], ephemeral=True)
     else:
@@ -55,12 +57,14 @@ class Time(commands.Cog):
         self.bot = bot
         self.bot.tree.add_command(get_time)
 
-    async def get_user_time_formatted(
+    async def get_user_time(
         self,
         user: discord.User | discord.Member,
-    ) -> str:
+        *,
+        formatted: bool = True,
+    ) -> str | BaseTzInfo:
         if user.bot:
-            raise commands.BadArgument("Bots dont have timezones, dummy!")
+            raise app_commands.CheckFailure("Bots dont have timezones, dummy!")
 
         async with self.bot.pool.acquire() as conn:
             timezone = await conn.fetchone(
@@ -73,18 +77,33 @@ class Time(commands.Cog):
             )
 
         if not timezone:
-            raise commands.BadArgument("This user has no timezone set.")
+            raise app_commands.CheckFailure("This user has no timezone set.")
 
-        return self.format_timezone(timezone[0])
+        timezone = tz(timezone[0])
 
-    def format_timezone(self, timezone: str) -> str:
-        time = discord.utils.utcnow().astimezone(tz(timezone))
+        return self.format_timezone(timezone) if formatted else timezone
+
+    def format_timezone(self, timezone: BaseTzInfo) -> str:
+        time = discord.utils.utcnow().astimezone(timezone)
         return time.strftime(f"**%I:%M %p** (%B {ordinal(time.day)})")
 
     timezone = app_commands.Group(
         name="timezone",
         description="Commands related to time.",
     )
+
+    async def cog_app_command_error(
+        self,
+        interaction: discord.Interaction[discord.Client],
+        error: app_commands.AppCommandError,
+    ) -> None:
+        if isinstance(error, app_commands.CheckFailure):
+            return await interaction.response.send_message(
+                error.args[0],
+                ephemeral=True,
+            )
+
+        raise error
 
     @timezone.command(name="set", description="Set your timezone.")
     @app_commands.describe(timezone="The timezone to set.")
@@ -132,8 +151,7 @@ class Time(commands.Cog):
                 ephemeral=False,
             )
 
-        formatted = self.format_timezone(timezone)
-
+        formatted = self.format_timezone(tz(timezone))
         await interaction.response.send_message(
             f"The time in `{timezone}` is {formatted}",
             ephemeral=hidden,
@@ -152,18 +170,55 @@ class Time(commands.Cog):
     ):
         target = user or interaction.user
 
-        try:
-            time = await self.get_user_time_formatted(target)
-        except commands.BadArgument as err:
-            return await interaction.response.send_message(
-                err.args[0],
-                ephemeral=True,
+        time = await self.get_user_time(target)
+        await interaction.response.send_message(
+            f"{target.display_name}'s current time is {time}",
+            ephemeral=hidden,
+        )
+
+    @timezone.command(
+        name="compare", description="Compare your timezone against someone."
+    )
+    @app_commands.describe(user="The user to compare against.")
+    async def _compare(
+        self,
+        interaction: discord.Interaction[Estella],
+        user: discord.User,
+        hidden: bool = False,
+    ):
+        author_timezone = await self.get_user_time(interaction.user, formatted=False)
+        target_timezone = await self.get_user_time(user, formatted=False)
+
+        assert isinstance(author_timezone, BaseTzInfo) and isinstance(
+            target_timezone, BaseTzInfo
+        )
+
+        now = datetime.now()
+
+        author_tz_offset, target_tz_offset = (
+            now.astimezone(author_timezone).utcoffset(),
+            now.astimezone(target_timezone).utcoffset(),
+        )
+
+        if not author_tz_offset or not target_tz_offset:  # type check
+            raise app_commands.CheckFailure(
+                "I can't compare timezones that don't exist."
             )
+
+        delta = (target_tz_offset - author_tz_offset).total_seconds() / 3600
+
+        message = None
+        if delta == 0:
+            message = "the same as yours."
+        elif delta > 0:
+            message = f"{abs(delta)} hours ahead of you."
         else:
-            await interaction.response.send_message(
-                f"{target.display_name}'s current time is {time}",
-                ephemeral=hidden,
-            )
+            message = f"{abs(delta)} hours behind you."
+
+        await interaction.response.send_message(
+            f"{user.display_name}'s time is {message}",
+            ephemeral=hidden,
+        )
 
 
 async def setup(bot: Estella):
