@@ -44,7 +44,7 @@ async def get_time(interaction: discord.Interaction[Estella], user: discord.Memb
 
     try:
         time = await cog.get_user_time(user)
-    except commands.BadArgument as err:
+    except app_commands.CheckFailure as err:
         await interaction.response.send_message(err.args[0], ephemeral=True)
     else:
         await interaction.response.send_message(
