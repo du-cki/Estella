@@ -6,6 +6,7 @@ from discord import app_commands
 
 import zoneinfo
 import itertools
+import xml.etree.ElementTree as ET
 
 from fuzzywuzzy import process  # pyright: ignore[reportMissingTypeStubs]
 from pytz import timezone as tz, BaseTzInfo
@@ -19,13 +20,14 @@ from utils import ordinal
 if TYPE_CHECKING:
     from utils import Estella
 
-TIMEZONES = zoneinfo.available_timezones()
-
 
 async def timezone_auto_complete(
-    _interaction: discord.Interaction[Estella],
+    interaction: discord.Interaction[Estella],
     current: str,
 ) -> list[app_commands.Choice[str]]:
+    time: "Time" = interaction.client.cogs["Time"]  # pyright: ignore[reportAssignmentType]
+    TIMEZONES = time.TIMEZONES
+
     if not current:
         return [
             app_commands.Choice(name=timezone, value=timezone)
@@ -33,8 +35,8 @@ async def timezone_auto_complete(
         ]
 
     return [
-        app_commands.Choice(name=timezone, value=timezone)  # pyright: ignore[reportUnknownArgumentType]
-        for timezone, _ in process.extract(current, TIMEZONES, limit=25)  # pyright: ignore[reportUnknownMemberType, reportAssignmentType, reportUnknownVariableType]
+        app_commands.Choice(name=name, value=zone[0] if zone else name)  # pyright: ignore[reportUnknownArgumentType]
+        for name, _, *zone in process.extract(current, TIMEZONES, limit=25)  # pyright: ignore[reportUnknownMemberType, reportAssignmentType, reportUnknownVariableType]
     ]
 
 
@@ -56,6 +58,39 @@ class Time(commands.Cog):
     def __init__(self, bot: Estella):
         self.bot = bot
         self.bot.tree.add_command(get_time)
+        self.TIMEZONES: dict[str, str] = {}
+
+    async def _parse_time_zones(self) -> dict[str, str]:
+        async with self.bot.session.get(
+            "https://raw.githubusercontent.com/unicode-org/cldr/main/common/bcp47/timezone.xml"
+        ) as req:
+            if req.status != 200:
+                raise ValueError("Failed to fetch timezones.")
+
+            text = await req.text()
+
+        final: dict[str, str] = {}
+        root = ET.fromstring(text)
+        for zone in root.findall(".//type"):
+            alias = zone.attrib.get("alias")
+            iana = zone.attrib.get("iana")
+
+            if alias:
+                alias, *_ = alias.split(" ")
+                final[iana or alias] = zone.attrib["description"]
+
+        return final
+
+    async def cog_load(self) -> None:
+        try:
+            self.TIMEZONES = await self._parse_time_zones()  # pyright: ignore[reportConstantRedefinition]
+        except Exception:
+            timezones = zoneinfo.available_timezones()
+
+            for zone in timezones:
+                self.TIMEZONES[zone] = zone
+
+        return await super().cog_load()
 
     async def get_user_time(
         self,
@@ -113,7 +148,7 @@ class Time(commands.Cog):
         interaction: discord.Interaction[Estella],
         timezone: str,
     ):
-        if timezone not in TIMEZONES:
+        if timezone not in self.TIMEZONES:
             return await interaction.response.send_message(
                 f"`{timezone}` is not a valid timezone.",
                 ephemeral=True,
@@ -145,7 +180,7 @@ class Time(commands.Cog):
         timezone: str,
         hidden: bool = False,
     ):
-        if timezone not in TIMEZONES:
+        if timezone not in self.TIMEZONES:
             return await interaction.response.send_message(
                 f"`{timezone}` is not a valid timezone.",
                 ephemeral=False,
@@ -153,7 +188,7 @@ class Time(commands.Cog):
 
         formatted = self.format_timezone(tz(timezone))
         await interaction.response.send_message(
-            f"The time in `{timezone}` is {formatted}",
+            f"The time in **{self.TIMEZONES[timezone]}** (`{timezone}`) is {formatted}",
             ephemeral=hidden,
         )
 
