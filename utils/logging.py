@@ -1,6 +1,8 @@
 import logging
+from logging.handlers import QueueHandler, QueueListener
 
 from io import BytesIO
+from queue import Queue
 from datetime import datetime
 
 from discord import SyncWebhook, Embed, File
@@ -73,11 +75,17 @@ handler = logging.StreamHandler()
 handler.setFormatter(_ColourFormatter())
 
 logger.addHandler(handler)
+logger.setLevel(logging.DEBUG)
 
 if LOG_FUNNEL_WEBHOOK:
+    queue: Queue[logging.LogRecord] = Queue(-1)
+    queueHandler = QueueHandler(queue)
+
+    remoteListener = QueueListener(queue, DiscordWebhookHandler(LOG_FUNNEL_WEBHOOK))
+
     discordLogger = logging.getLogger("discord")
-    discordLogger.addHandler(DiscordWebhookHandler(LOG_FUNNEL_WEBHOOK))
+    discordLogger.addHandler(queueHandler)
 
-    logger.addHandler(DiscordWebhookHandler(LOG_FUNNEL_WEBHOOK))
+    logger.addHandler(queueHandler)
 
-logger.setLevel(logging.DEBUG)
+    remoteListener.start()
