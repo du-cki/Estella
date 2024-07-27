@@ -13,8 +13,9 @@ bot = Estella(
     allowed_contexts=app_commands.AppCommandContext(
         dm_channel=True,
         private_channel=True,
+        guild=True,
     ),
-    allowed_installs=app_commands.AppInstallationType(user=True),
+    allowed_installs=app_commands.AppInstallationType(user=True, guild=True),
 )
 
 
