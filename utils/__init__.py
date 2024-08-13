@@ -3,9 +3,11 @@ from .motd import (
 )
 
 from .functions import (
+    Timer as Timer,
     to_cb as to_cb,
     ordinal as ordinal,
     as_chunks as as_chunks,
+    run_in_executor as run_in_executor,
 )
 
 from .logging import (
@@ -18,9 +20,11 @@ from .subclasses import (
 
 __all__ = (
     "motd_to_ansi",
+    "Timer",
     "to_cb",
     "ordinal",
     "as_chunks",
+    "run_in_executor",
     "logger",
     "Estella",
 )

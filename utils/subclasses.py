@@ -4,8 +4,8 @@ import discord
 from discord.ext import commands
 
 import asqlite
+import glob
 
-from pathlib import Path
 from aiohttp import ClientSession
 
 from .logging import logger
@@ -47,9 +47,11 @@ class Estella(commands.Bot):
 
         await self.load_extension("jishaku")
 
-        exts = Path("extensions").glob("*.py")
+        exts = glob.glob("extensions/[!_]*")
         for ext in exts:
-            logger.info(f"Loading extension: {ext.name}")
-            await self.load_extension(f"extensions.{ext.name[:-3]}")
+            ext = ext.replace("\\", ".").replace("/", ".").removesuffix(".py")
+
+            logger.info(f"Loading extension: {ext}")
+            await self.load_extension(ext)
 
         logger.info(f"Logged in as {self.user}")
