@@ -56,7 +56,7 @@ class Estella(commands.Bot):
 
         await self.load_extension("jishaku")
 
-        exts = glob.glob("extensions/[!_]*")
+        exts = glob.glob("ext/[!_]*")
         for ext in exts:
             ext = ext.replace("\\", ".").replace("/", ".").removesuffix(".py")
 
