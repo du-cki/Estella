@@ -2,15 +2,28 @@
 
 A personal discord bot with utilities for my friends.
 
-### Config
+## Self-Hosting
 
-Config values marked as `[optional]` can be left as `None`
+**Note:** Self-hosting is not recommended. Use the official instance. If you still want to self-host, here’s how:
 
-```py
-# config.py
-TOKEN = "" # Discord bot token
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/du-cki/Estella
+   ```
+2. Navigate to the project directory:
+   ```bash
+   cd Estella
+   ```
+3. Fill in the required environment variables in `docker-compose.yaml`.
+4. Start the application:
+   ```bash
+   docker compose up -d
+   ```
 
-DEFAULT_PREFIX = "estella" # The default prefix for bot commands, mentioning the bot also works as a prefix.
-LOG_FUNNEL_WEBHOOK = None # A discord webhook to funnel all the logs too. [optional]
-SERVER_IP = None # a minecraft server to keep track of, for the `server` extension. [optional]
+### Updating Your Instance
+
+To update your self-hosted instance to the latest version:
+```bash
+git pull
+docker compose up -d --build
 ```
