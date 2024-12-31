@@ -18,6 +18,10 @@ from .subclasses import (
     Estella as Estella,
 )
 
+from .audio import (
+    generate_waveform_from_audio as generate_waveform_from_audio,
+)
+
 __all__ = (
     "motd_to_ansi",
     "Timer",
@@ -27,4 +31,5 @@ __all__ = (
     "run_in_executor",
     "logger",
     "Estella",
+    "generate_waveform_from_audio",
 )
