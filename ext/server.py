@@ -110,9 +110,11 @@ class Server(commands.Cog):
 
         await interaction.response.send_message(
             embed=embed,
-            file=discord.File(favicon[0], filename=f"favicon.{favicon[1]}")
-            if favicon
-            else discord.utils.MISSING,
+            file=(
+                discord.File(favicon[0], filename=f"favicon.{favicon[1]}")
+                if favicon
+                else discord.utils.MISSING
+            ),
         )
 
     @server.command(description="List online players.")

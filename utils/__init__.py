@@ -1,34 +1,26 @@
-from .motd import (
-    motd_to_ansi as motd_to_ansi,
-)
-
 from .functions import (
-    Timer as Timer,
-    to_cb as to_cb,
-    ordinal as ordinal,
-    as_chunks as as_chunks,
-    run_in_executor as run_in_executor,
+    Timer,
+    to_cb,
+    ordinal,
+    as_chunks,
+    run_in_executor,
+    variants,
 )
 
-from .logging import (
-    logger as logger,
-)
+from .motd import motd_to_ansi
+from .logging import logger
+from .subclasses import Estella
+from .audio import generate_waveform_from_audio
 
-from .subclasses import (
-    Estella as Estella,
-)
-
-from .audio import (
-    generate_waveform_from_audio as generate_waveform_from_audio,
-)
 
 __all__ = (
-    "motd_to_ansi",
     "Timer",
     "to_cb",
     "ordinal",
     "as_chunks",
     "run_in_executor",
+    "variants",
+    "motd_to_ansi",
     "logger",
     "Estella",
     "generate_waveform_from_audio",

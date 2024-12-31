@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+import time
 import asyncio
 import functools
-import time
+import itertools
 
 from contextlib import contextmanager
 
@@ -53,3 +54,12 @@ def run_in_executor(
         return await loop.run_in_executor(executor=None, func=func)
 
     return wrapped
+
+
+def variants(original: str) -> list[str]:
+    return [
+        "".join(variant)
+        for variant in itertools.product(
+            *([char.lower(), char.upper()] for char in original)
+        )
+    ]

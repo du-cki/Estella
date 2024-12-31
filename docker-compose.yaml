@@ -1,0 +1,19 @@
+services:
+  bot:
+    container_name: "Estella"
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    environment:
+      # Required
+      TOKEN:
+      DEFAULT_PREFIX:
+
+      # Optional
+      LOG_FUNNEL_WEBHOOK:
+      SERVER_IP:
+    volumes:
+      - /data/estella:/app/db/

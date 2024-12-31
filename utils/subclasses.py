@@ -47,7 +47,7 @@ class Estella(commands.Bot):
         self.tree.interaction_check = whitelist_check
 
         logger.info("Connecting to database.")
-        self.pool = await asqlite.create_pool("data.db")
+        self.pool = await asqlite.create_pool("db/data.db")
 
         logger.info("Setting up database.")
         async with self.pool.acquire() as conn:
