@@ -10,9 +10,12 @@ RUN pip install poetry==1.8.5
 
 WORKDIR /app
 
+RUN apt-get update -y \
+    && apt-get install --no-install-recommends --no-install-suggests -y ffmpeg \
+    && rm -rf /var/lib/apt/lists/*
+    
 COPY pyproject.toml poetry.lock ./
-
-RUN poetry install --without dev  && rm -rf $POETRY_CACHE_DIR
+RUN poetry install --without dev && rm -rf $POETRY_CACHE_DIR
 
 COPY . .
 
