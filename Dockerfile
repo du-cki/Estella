@@ -1,4 +1,4 @@
-FROM python:3.11-slim
+FROM python:3.11-alpine
 
 ENV POETRY_NO_INTERACTION=1 \
     POETRY_VIRTUALENVS_IN_PROJECT=1 \
@@ -10,9 +10,9 @@ RUN pip install poetry==1.8.5
 
 WORKDIR /app
 
-RUN apt-get update -y \
-    && apt-get install --no-install-recommends --no-install-suggests -y ffmpeg \
-    && rm -rf /var/lib/apt/lists/*
+RUN apk --no-cache add \
+    bash \
+    ffmpeg
     
 COPY pyproject.toml poetry.lock ./
 RUN poetry install --without dev && rm -rf $POETRY_CACHE_DIR
