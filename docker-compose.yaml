@@ -5,6 +5,11 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    develop:
+      watch:
+        - path: ./ext
+          action: sync
+          target: /app/ext
     env_file:
       - .env
     environment:
