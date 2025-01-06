@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS user_timezones (
     timezone TEXT NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS bot_whitelist (
-    user_id BIGINT PRIMARY KEY
+CREATE TABLE IF NOT EXISTS bot_blacklist (
+    user_id BIGINT PRIMARY KEY,
+    reason TEXT
 );

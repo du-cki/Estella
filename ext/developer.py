@@ -3,7 +3,7 @@ from __future__ import annotations
 import discord
 from discord.ext import commands
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
     from utils import Estella
@@ -22,40 +22,47 @@ class Developer(commands.Cog):
             f"Synced {len(commands)} command{['s', ''][len(commands) == 1]}.",
         )
 
-    @commands.group(aliases=["wl"], invoke_without_command=True, hidden=True)
+    @commands.group(aliases=["bl"], invoke_without_command=True, hidden=True)
     @commands.is_owner()
-    async def whitelist(self, ctx: commands.Context[Estella]):
-        await ctx.send_help(self.whitelist)
+    async def blacklist(self, ctx: commands.Context[Estella]):
+        await ctx.send_help(self.blacklist)
 
-    @whitelist.command()
+    @blacklist.command()
     @commands.is_owner()
-    async def add(self, ctx: commands.Context[Estella], user: discord.User):
+    async def add(
+        self,
+        ctx: commands.Context[Estella],
+        user: discord.User,
+        *,
+        reason: Optional[str],
+    ):
         async with ctx.bot.pool.acquire() as conn:
             await conn.execute(
                 """
-                INSERT INTO bot_whitelist
-                    VALUES ($1)
+                INSERT INTO bot_blacklist
+                    VALUES ($1, $2)
                 ON CONFLICT (user_id)
                     DO NOTHING
                 """,
                 user.id,
+                reason,
             )
 
-        await ctx.send(f"Added {user.mention} to the bot whitelist.")
+        await ctx.send(f"Added {user.mention} to the bot blacklist.")
 
-    @whitelist.command()
+    @blacklist.command()
     @commands.is_owner()
     async def remove(self, ctx: commands.Context[Estella], user: discord.User):
         async with ctx.bot.pool.acquire() as conn:
             await conn.execute(
                 """
-                DELETE FROM bot_whitelist
+                DELETE FROM bot_blacklist
                 WHERE user_id = $1
                 """,
                 user.id,
             )
 
-        await ctx.send(f"Removed {user.mention} from the bot whitelist.")
+        await ctx.send(f"Removed {user.mention} from the bot blacklist.")
 
     async def is_owner(self, user_id: int) -> bool:
         if self.bot.owner_id:

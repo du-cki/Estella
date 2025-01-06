@@ -20,31 +20,33 @@ if TYPE_CHECKING:
     from typing import Optional
 
 
-async def whitelist_check(interaction: discord.Interaction[Estella]):
-    if await interaction.client.is_owner(interaction.user):
-        return True
+async def blacklist_check(interaction: discord.Interaction[Estella]):
+    # if await interaction.client.is_owner(interaction.user):
+    #     return True
 
     async with interaction.client.pool.acquire() as conn:
-        whitelisted = await conn.fetchone(
-            "SELECT EXISTS (SELECT 1 FROM bot_whitelist WHERE user_id = $1)",
+        blacklisted = await conn.fetchone(
+            "SELECT EXISTS (SELECT 1 FROM bot_blacklist WHERE user_id = $1)",
             interaction.user.id,
         )
 
-        whitelisted = whitelisted[0]
+        blacklisted = blacklisted[0]
 
-    if not whitelisted:
+    if blacklisted:
         await interaction.response.send_message(
-            "You are not whitelisted. Please contact the owner to get whitelisted.",
+            "You are blacklisted. Please contact the owner to get whitelisted again.",
             ephemeral=True,
         )
 
-    return whitelisted
+        return False
+
+    return True
 
 
 class Estella(commands.Bot):
     async def setup_hook(self):
         self.session = ClientSession()
-        self.tree.interaction_check = whitelist_check
+        self.tree.interaction_check = blacklist_check
 
         logger.info("Connecting to database.")
         self.pool = await asqlite.create_pool("db/data.db")
