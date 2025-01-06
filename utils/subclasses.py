@@ -21,8 +21,8 @@ if TYPE_CHECKING:
 
 
 async def blacklist_check(interaction: discord.Interaction[Estella]):
-    # if await interaction.client.is_owner(interaction.user):
-    #     return True
+    if await interaction.client.is_owner(interaction.user):
+        return True
 
     async with interaction.client.pool.acquire() as conn:
         blacklisted = await conn.fetchone(
