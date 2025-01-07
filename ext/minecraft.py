@@ -62,7 +62,7 @@ class Minecraft(commands.Cog):
 
     server = app_commands.Group(
         name="server",
-        description="Commands related to the server.",
+        description="Commands related to any minecraft server that I watch.",
     )
 
     async def cog_app_command_error(  # pyright: ignore[reportIncompatibleMethodOverride]
@@ -84,7 +84,7 @@ class Minecraft(commands.Cog):
         latency: float = await self.client.async_ping()  # type: ignore
         await interaction.response.send_message(f"Pong! **{latency:.2f}ms**")
 
-    @server.command(description="View the information of the server.")
+    @server.command(description="Views the information of the server.")
     @app_commands.check(_is_server_online)
     async def info(self, interaction: discord.Interaction[Estella]):
         status: JavaStatusResponse = await self.client.async_status()  # type: ignore
@@ -168,7 +168,7 @@ class Minecraft(commands.Cog):
 
         for emoji in emojis:
             if emoji.name.endswith("_head"):
-                name, _ = emoji.name.split("_")
+                name, _ = emoji.name.rsplit("_", maxsplit=1)
                 self.HEAD_CACHE[name] = emoji
 
         return await super().cog_load()
@@ -210,7 +210,6 @@ class Minecraft(commands.Cog):
         hash_ = hashlib.sha256(player_head).hexdigest()
 
         name = player.name.lower()
-
         emoji = await self.bot.create_application_emoji(
             name=f"{name}_head",
             image=player_head,
@@ -228,11 +227,10 @@ class Minecraft(commands.Cog):
             """,
                 player.uuid,
                 hash_,
-                last_updated_at or discord.utils.utcnow(),
+                last_updated_at or datetime.datetime.now(),
             )
 
         self.HEAD_CACHE[name] = emoji
-
         logger.info("Created the player head.")
 
     async def _validate_and_update_player_head(self, player: JavaStatusPlayer):
@@ -250,20 +248,28 @@ class Minecraft(commands.Cog):
         if not player_data:
             return
 
-        upper_limit = datetime.timedelta(hours=1)
         last_updated_at = datetime.datetime.fromisoformat(
             player_data["last_updated_at"]
         )
 
-        if (discord.utils.utcnow() - last_updated_at) < upper_limit:
-            async with self.bot.pool.acquire() as conn:
-                await conn.execute(
-                    "UPDATE minecraft_heads SET last_updated_at = $1 WHERE uuid = $2",
-                    last_updated_at,
-                    player.uuid,
-                )
+        now = datetime.datetime.now()
 
+        lower_limit = now - last_updated_at
+        upper_limit = datetime.timedelta(minutes=10)
+
+        if lower_limit < upper_limit:
             return
+
+        async with self.bot.pool.acquire() as conn:
+            await conn.execute(
+                """
+                    UPDATE minecraft_heads
+                        SET last_updated_at = $1
+                        WHERE uuid = $2
+                """,
+                now,
+                player.uuid,
+            )
 
         player_head = await self._get_player_head(player.uuid)
         hash_ = hashlib.sha256(player_head).hexdigest()
