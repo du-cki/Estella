@@ -131,9 +131,11 @@ class Minecraft(commands.Cog):
         status: JavaStatusResponse = await self.client.async_status()  # type: ignore
 
         if not status.players.sample:
-            return await interaction.response.send_message(
-                "I don't see anyone online at the moment."
+            await interaction.edit_original_response(
+                content="I don't see anyone online at the moment."
             )
+
+            return
 
         annons = 0
         players_list = [
