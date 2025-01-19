@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import discord
 from discord.ext import commands
+from discord import app_commands, utils
 
+from discord.abc import Snowflake
 from discord.http import handle_message_parameters
 from discord.flags import MessageFlags
 
@@ -41,6 +43,16 @@ async def blacklist_check(interaction: discord.Interaction[Estella]):
         return False
 
     return True
+
+
+class Tree(app_commands.CommandTree):
+    @utils.copy_doc(app_commands.CommandTree.sync)
+    async def sync(
+        self,
+        *,
+        guild: Optional[Snowflake] = None,
+    ) -> list[app_commands.AppCommand]:
+        return await super().sync(guild=guild)
 
 
 class Estella(commands.Bot):

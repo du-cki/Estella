@@ -6,6 +6,8 @@ import functools
 import itertools
 
 from contextlib import contextmanager
+from base64 import b64decode
+from io import BytesIO
 
 from typing import TYPE_CHECKING, ParamSpec, TypeVar
 
@@ -54,6 +56,16 @@ def run_in_executor(
         return await loop.run_in_executor(executor=None, func=func)
 
     return wrapped
+
+
+def convert_data_uri(data_uri: str) -> tuple[BytesIO, str]:
+    header, encoded = data_uri.split(",", 1)
+    data = b64decode(encoded)
+
+    mime_type = header.split(";")[0].split(":")[1]
+    ext = mime_type.split("/")[1]
+
+    return BytesIO(data), ext
 
 
 def variants(original: str) -> list[str]:

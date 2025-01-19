@@ -19,6 +19,5 @@ services:
 
       # Optional
       LOG_FUNNEL_WEBHOOK:
-      SERVER_IP:
     volumes:
       - /data/estella:/app/db/

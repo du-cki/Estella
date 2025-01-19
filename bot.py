@@ -5,7 +5,7 @@ from discord import app_commands
 
 from discord.ext import commands
 
-from utils import Estella, variants
+from utils import Estella, Tree, variants
 from config import TOKEN, DEFAULT_PREFIX
 
 jishaku.Flags.NO_UNDERSCORE = True
@@ -20,6 +20,7 @@ bot = Estella(
     strip_after_prefix=True,
     case_insensitive=True,
     intents=intents,
+    tree_cls=Tree,
     allowed_contexts=app_commands.AppCommandContext(
         dm_channel=True,
         private_channel=True,
