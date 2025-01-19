@@ -65,21 +65,27 @@ class ChannelSource(ui.Select["AssignSourceView"]):
             id_, channel_type, parent_channel_id=parent_id
         )
 
-        data: dict[str, Any] = {
-            "server_ip": self.server_ip,
-            "channel_id": id_,
-            "channel_type": channel_type,
-            "parent_id": parent_id,
-            "minecraft_server_type": MinecraftServerType.IP,
-        }
-
         if is_assigned_elsewhere:
             if self.view:
                 self.view.stop()
 
-            return await cog.ask_for_reassignment_confirmation(interaction, **data)
+            return await cog.ask_for_reassignment_confirmation(
+                interaction,
+                server_ip=self.server_ip,
+                channel_id=id_,
+                channel_type=channel_type,
+                parent_id=parent_id,
+                minecraft_server_type=MinecraftServerType.IP,
+            )
 
-        await cog.minecraft_server_cache.assign_or_update(self.server_ip, **data)
+        await cog.minecraft_server_cache.assign_or_update(
+            server_ip=self.server_ip,
+            channel_id=id_,
+            channel_type=channel_type,
+            parent_id=parent_id,
+            minecraft_server_type=MinecraftServerType.IP,
+            assigned_by=interaction.user.id,
+        )
 
         await interaction.response.edit_message(
             content=f"Assigned **`{self.server_ip}`** to {channel_phrasing[channel_type].lower()}.",

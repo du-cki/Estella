@@ -21,7 +21,7 @@ from .cache import (
     MinecraftServerCache,
 )
 
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
     from utils import Estella, Interaction
@@ -186,19 +186,23 @@ class Minecraft(commands.Cog):
                 )
             )
 
-            data: dict[str, Any] = {
-                "server_ip": minecraft_server_ip,
-                "channel_id": interaction.channel.id,
-                "channel_type": channel_type,
-                "parent_id": None,
-                "minecraft_server_type": MinecraftServerType.IP,
-            }
-
             if any_server_assigned:
-                await self.ask_for_reassignment_confirmation(interaction, **data)
+                await self.ask_for_reassignment_confirmation(
+                    interaction,
+                    server_ip=minecraft_server_ip,
+                    channel_id=interaction.channel.id,
+                    channel_type=channel_type,
+                    parent_id=None,
+                    minecraft_server_type=MinecraftServerType.IP,
+                )
             else:
                 await self.minecraft_server_cache.assign_or_update(
-                    minecraft_server_ip, **data
+                    server_ip=minecraft_server_ip,
+                    channel_id=interaction.channel.id,
+                    channel_type=channel_type,
+                    parent_id=None,
+                    minecraft_server_type=MinecraftServerType.IP,
+                    assigned_by=interaction.user.id,
                 )
 
                 await interaction.edit_original_response(
