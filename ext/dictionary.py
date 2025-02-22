@@ -154,7 +154,7 @@ class Dictionary(commands.Cog):
             _from="de",
             _to="en",
             colour=GERMAN_RED,
-            btn_label="Sprechen",
+            btn_label="Aussprache",
         )
 
     @app_commands.command(description="Ger den engelska betydelsen på ett svenskt ord.")
