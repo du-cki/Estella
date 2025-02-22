@@ -75,3 +75,15 @@ def variants(original: str) -> list[str]:
             *([char.lower(), char.upper()] for char in original)
         )
     ]
+
+
+def clamp(
+    target: str,
+    *,
+    length: int = 100,
+    end: str = "...",
+):
+    if len(target) > length:
+        return target[: length - len(end)] + end
+
+    return target

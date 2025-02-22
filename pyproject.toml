@@ -17,6 +17,7 @@ python-levenshtein = "^0.25.1"
 asqlite = "^2.0.0"
 pytz = "^2024.1"
 requests = "^2.32.3"
+beautifulsoup4 = "^4.13.3"
 
 
 [tool.poetry.group.dev.dependencies]

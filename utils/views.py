@@ -21,6 +21,7 @@ class BaseView(ui.View):
     author_id: Optional[int]
     message: Optional[discord.Message]
 
+    @discord.utils.copy_doc(ui.View.__init__)
     def __init__(
         self,
         *,

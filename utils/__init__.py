@@ -9,6 +9,7 @@ from .functions import (
     run_in_executor,
     convert_data_uri,
     variants,
+    clamp,
 )
 
 from .motd import motd_to_ansi
@@ -31,6 +32,7 @@ __all__ = (
     "run_in_executor",
     "convert_data_uri",
     "variants",
+    "clamp",
     "motd_to_ansi",
     "logger",
     "Estella",
