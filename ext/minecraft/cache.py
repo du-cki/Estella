@@ -75,9 +75,11 @@ class MinecraftServer:
         self.__server = JavaServer.lookup(ip)
 
     async def ping(self) -> float:
-        return (
-            await self.__server.async_ping()  # pyright: ignore[reportUnknownMemberType]
-        )
+        before = discord.utils.utcnow().timestamp()
+        await self.status()
+        after = discord.utils.utcnow().timestamp()
+
+        return (after - before) / 1000
 
     async def status(self) -> JavaStatusResponse:
         return (
@@ -205,8 +207,8 @@ class MinecraftHeadCache:
         update: Optional[bool] = False,
         create: Optional[bool] = False,
     ) -> discord.Emoji:
-        name = player.name.lower()
-
+        name = player.name.lower().replace(".", "_")
+        
         emoji = self._cache.get(name)
         if emoji:
             if update:
@@ -220,7 +222,6 @@ class MinecraftHeadCache:
             raise ValueError(f"{name}'s player head not found.")
 
         await self.create(player)
-
         return await self.get(player)
 
     async def populate(self):
@@ -250,7 +251,7 @@ class MinecraftHeadCache:
         last_updated_at: Optional[datetime.datetime] = None,
     ):
         async with self._lock:
-            name = player.name.lower()
+            name = player.name.lower().replace(".", "_")
             if name in self._cache:
                 return
 

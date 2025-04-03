@@ -271,7 +271,7 @@ class Minecraft(commands.Cog):
         )
 
     async def _format_player(self, player: JavaStatusPlayer) -> str:
-        head = await self.minecraft_head_cache.get(player)
+        head = await self.minecraft_head_cache.get(player, create=True)
         return f"{head} **{player.name}**"
 
     @server.command(description="List online players.")

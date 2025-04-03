@@ -83,7 +83,7 @@ class Dictionary(commands.Cog):
         _to: str,
         colour: int,
         btn_label: str,
-        flipped: bool = False,
+        reversed: bool = False,
     ):
         definition = await self.dictcc.define(word, _from=_from, _to=_to)
         if not definition:
@@ -106,7 +106,7 @@ class Dictionary(commands.Cog):
                 builder += f"\n### {seg_name}\n"
 
             for node in seg_value[:3]:
-                if flipped:
+                if reversed:
                     _from_lang, _to_lang = node
                 else:
                     _to_lang, _from_lang = node
@@ -116,7 +116,7 @@ class Dictionary(commands.Cog):
                 else:
                     builder += f"\n- {_from_lang.word} [{_to_lang.word}]"
 
-        if flipped:
+        if reversed:
             first_definition, _ = definition["Definition"][0]
         else:
             _, first_definition = definition["Definition"][0]
@@ -174,7 +174,7 @@ class Dictionary(commands.Cog):
             _to="sv",
             colour=SWEDISH_YELLOW,
             btn_label="Uttal",
-            flipped=True,
+            reversed=True,
         )
 
 
