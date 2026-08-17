@@ -163,3 +163,4 @@ cython_debug/
 
 docker-compose-dev.yaml
 db/
+test/
