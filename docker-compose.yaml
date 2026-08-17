@@ -21,3 +21,4 @@ services:
       LOG_FUNNEL_WEBHOOK:
     volumes:
       - /data/estella:/app/db/
+      - /data/estella/heights:/app/configs
