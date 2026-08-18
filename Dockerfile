@@ -7,8 +7,7 @@ RUN git config --global url."https://github.com/".insteadOf "git@github.com:" \
     && git submodule update --init -- vendor/mipha \
     && cd vendor/mipha \
     && git config submodule.utilities/shared.url https://github.com/AbstractUmbra/Shared-Bot-Utilities \
-    && git submodule update --init -- utilities/shared \
-    && sed -i '/@app_commands\.guilds(discord\.Object(id=DANNYWARE_ID), discord\.Object(id=705500489248145459))/d' extensions/heights/cog.py
+    && git submodule update --init -- utilities/shared
 
 FROM python:3.12-alpine
 
