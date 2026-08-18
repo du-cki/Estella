@@ -22,6 +22,16 @@ class Developer(commands.Cog):
             f"Synced {len(commands)} command{['s', ''][len(commands) == 1]}.",
         )
 
+    @commands.command(hidden=True)
+    @commands.is_owner()
+    async def clear(
+        self,
+        ctx: commands.Context[Estella],
+        guild_id: Optional[discord.Object] = None,
+    ):
+        self.bot.tree.clear_commands(guild=guild_id)
+        await ctx.send("Cleared.")
+
     @commands.group(aliases=["bl"], invoke_without_command=True, hidden=True)
     @commands.is_owner()
     async def blacklist(self, ctx: commands.Context[Estella]):
