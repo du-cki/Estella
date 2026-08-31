@@ -1,6 +1,5 @@
 from env import getenv
 
-
 TOKEN = getenv("TOKEN")
 DEFAULT_PREFIX = getenv("DEFAULT_PREFIX")
 
