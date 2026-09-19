@@ -50,8 +50,7 @@ class DDG:
                     f"Complementary: #{color.get('complementary')}"
                 )
 
-        if match := re.search(r"nrj\('(/js/spice/currency/[^']+)'", html_text):
-            s_url = match.group(1)
+        if s_url := extract_js_payload(html_text, r"nrj\(\s*(?='/js/spice/currency/)"):
             return await self.fetch_currency(s_url)
 
         return None
@@ -84,11 +83,12 @@ class DDG:
                         f"-# (1 {from_curr} ≈ {rate:.2f} {to_curr})"
                     )
 
-    async def fetch_abstracts(
+    async def fetch_qna(
         self,
+        query: str,
         html_text: str,
         headers: dict[str, str],
-    ) -> tuple[str, list[dict[str, str]]]:
+    ):
         vqd = extract_js_payload(html_text, r"vqd\s*[:=]\s*")
         if not vqd:
             raise ValueError("failed to extract vqd")
@@ -110,17 +110,15 @@ class DDG:
             else:
                 raise ValueError("failed to extract d.js route")
 
-        headers_ = {
-            **headers,
-            "Accept": "*/*",
-            "Sec-Fetch-Dest": "script",
-            "Sec-Fetch-Mode": "no-cors",
-            "Sec-Fetch-Site": "same-site",
-        }
-
         async with self.session.get(
             d_js_url,
-            headers=headers_,
+            headers={
+                **headers,
+                "Accept": "*/*",
+                "Sec-Fetch-Dest": "script",
+                "Sec-Fetch-Mode": "no-cors",
+                "Sec-Fetch-Site": "same-site",
+            },
         ) as resp:
             d_js_text = await resp.text()
 
@@ -133,7 +131,6 @@ class DDG:
             )
 
             abstracts = []
-
             for row in data:
                 if isinstance(row, dict) and (a := row.get("a")):
                     clean_text = BeautifulSoup(a, "html.parser").get_text(strip=True)
@@ -142,36 +139,20 @@ class DDG:
                     if len(abstracts) >= 3:
                         break
 
-        return (vqd, abstracts)
-
-    async def query_qna(
-        self,
-        query: str,
-        vqd: str,
-        abstracts: list[dict[str, str]],
-    ):
-        params = {
-            "q": query,
-            "vqd": vqd,
-        }
-
-        headers = {
-            "User-Agent": USER_AGENT,
-            "Referer": f"{self.BASE_URL}/?q={query.replace(' ', '+')}",
-            "Origin": self.BASE_URL,
-            "Accept": "text/event-stream",
-            "Content-Type": "application/json",
-        }
-
-        json = {
-            "abstracts": abstracts,
-        }
+        if not abstracts:
+            return None
 
         async with self.session.post(
             f"{self.BASE_URL}/qna.js",
-            params=params,
-            headers=headers,
-            json=json,
+            params={"q": query, "vqd": vqd},
+            headers={
+                **headers,
+                "Referer": f"{self.BASE_URL}/?q={query.replace(' ', '+')}",
+                "Origin": self.BASE_URL,
+                "Accept": "text/event-stream",
+                "Content-Type": "application/json",
+            },
+            json={"abstracts": abstracts},
         ) as response:
             return await response.json()
 
@@ -183,7 +164,7 @@ class DDG:
             }
 
             async with self.session.get(
-                f"{self.BASE_URL}/",
+                self.BASE_URL,
                 params={"q": query},
                 headers=headers,
             ) as resp:
@@ -192,10 +173,11 @@ class DDG:
             if embedded_answer := await self.parse_embeds(html_text):
                 return embedded_answer
 
-            vqd, abstracts = await self.fetch_abstracts(html_text, headers)
-            resp = await self.query_qna(query, vqd, abstracts)
-
-            if resp.get("action") == "answer" and (answer := resp.get("answer")):
+            if (
+                (resp := await self.fetch_qna(query, html_text, headers))
+                and resp.get("action") == "answer"
+                and (answer := resp.get("answer"))
+            ):
                 return answer
 
         except Exception as err:  # noqa: BLE001
