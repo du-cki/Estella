@@ -24,8 +24,7 @@ class Chat(commands.Cog):
         if ctx.valid or not user:
             return
 
-        # name = user.name.lower()
-        name = "stella"
+        name = user.name.lower()
 
         cnt = message.content
         if not cnt.lower().startswith(name):
