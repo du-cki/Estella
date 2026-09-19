@@ -25,13 +25,7 @@ async def blacklist_check(interaction: discord.Interaction[Estella]):
     if await interaction.client.is_owner(interaction.user):
         return True
 
-    async with interaction.client.pool.acquire() as conn:
-        blacklisted = await conn.fetchone(
-            "SELECT EXISTS (SELECT 1 FROM bot_blacklist WHERE user_id = $1)",
-            interaction.user.id,
-        )
-
-        blacklisted = blacklisted[0]
+    blacklisted = await interaction.client.is_user_blacklisted(interaction.user.id)
 
     if blacklisted:
         await interaction.response.send_message(
@@ -70,6 +64,15 @@ class Estella(commands.Bot):
             await self.load_extension(ext)
 
         logger.info(f"Logged in as {self.user}")
+
+    async def is_user_blacklisted(self, user_id: int) -> bool:
+        async with self.pool.acquire() as conn:
+            blacklisted = await conn.fetchone(
+                "SELECT EXISTS (SELECT 1 FROM bot_blacklist WHERE user_id = $1)",
+                user_id,
+            )
+
+        return bool(blacklisted[0])
 
     async def send_voice_message(
         self,
