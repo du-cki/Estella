@@ -18,6 +18,9 @@ class Chat(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
+        if message.author.bot:
+            return
+
         user = self.bot.user
         ctx = await self.bot.get_context(message)
 
