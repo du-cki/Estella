@@ -33,7 +33,7 @@ class Chat(commands.Cog):
         if not cnt.lower().startswith(name):
             return
 
-        query = cnt[len(name) :]
+        query = cnt[len(name) :].strip()
         if not query:
             return
 
